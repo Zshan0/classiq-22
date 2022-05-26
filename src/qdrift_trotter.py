@@ -2,26 +2,32 @@ from qiskit import QuantumCircuit
 from qiskit.circuit.library import PauliEvolutionGate
 from qiskit.synthesis import QDrift
 
-from parser import get_pauli_sum_op
+from constructor import Constructor
 
-def qdrift_trotter(operator: PauliEvolutionGate, _reps:int= 1) -> QuantumCircuit:
-    trotterizor = QDrift(reps=_reps)  # order 1 always.
-    circ = trotterizor.synthesize(operator)
-    return circ
+
+class Qdrift(Constructor):
+    def __init__(self):
+        super().__init__("QDRIFT")
+
+    def get_circuit(self, _reps: int = 1) -> QuantumCircuit:
+        assert _reps > 0, "Incorrect number of reps provided"
+        self.simulator = QDrift(reps=_reps)  # order 1 always.
+
+        circuit = self.simulator.synthesize(PauliEvolutionGate(self.pauli_op))
+        assert circuit is not None, "Could not make a circuit for given operator"
+
+        self.circuit = circuit
+        return self.circuit
 
 
 def main():
-    hamiltonian = "H2" 
+    hamiltonian = "H2"
     reps = 1
 
-    operator = get_pauli_sum_op(hamiltonian)
-    operator = PauliEvolutionGate(operator)
-    circ = qdrift_trotter(operator, reps)
-    decomposed = circ.decompose()
-    print("High-level circuit:")
-    print(circ)
-    print("Low-level circuit:")
-    print(decomposed)
+    constructor = Qdrift()
+    constructor.load_hamiltonian(hamiltonian)
+    circ = constructor.get_circuit(reps)
+    constructor.get_error()
 
 
 if __name__ == "__main__":
