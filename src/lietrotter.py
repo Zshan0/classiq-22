@@ -1,14 +1,13 @@
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import PauliEvolutionGate
-from qiskit.synthesis import QDrift
-from constructor import Constructor, hamiltonian_circuit_error, get_hamiltonian_unitary
-
+from qiskit.synthesis import LieTrotter
+from constructor import Constructor, hamiltonian_circuit_error
 import numpy as np
 
 
-class Qdrift(Constructor):
+class Lie(Constructor):
     def __init__(self):
-        super().__init__("QDRIFT")
+        super().__init__("LIE")
 
     def get_circuit(self, _reps: int = 1) -> QuantumCircuit:
         """Get Hamiltonian circuit.
@@ -24,7 +23,7 @@ class Qdrift(Constructor):
             AssertionError: QDrift could not construct circuit.
         """
         assert _reps > 0, "Incorrect number of reps provided"
-        synthesizer = QDrift(reps=_reps)  # order 1 always.
+        synthesizer = LieTrotter(reps=_reps)  # order 1 always.
 
         assert synthesizer is not None, "Error constructing the circuit."
         evo_gate = PauliEvolutionGate(self.pauli_op, 1.0, synthesis=synthesizer)
@@ -39,7 +38,7 @@ class Qdrift(Constructor):
 
 
 def loop(a, b, print_circuit, hamiltonian):
-    constructor = Qdrift()
+    constructor = Lie()
     constructor.load_hamiltonian(hamiltonian)
     min_err = np.inf
     for reps in range(a, b):
@@ -59,7 +58,7 @@ def loop(a, b, print_circuit, hamiltonian):
 
 
 def main():
-    loop(10, 11, False, "LiH")
+    loop(1, 2, False, "LiH")
 
 
 if __name__ == "__main__":
