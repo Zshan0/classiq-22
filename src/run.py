@@ -1,5 +1,6 @@
 from lietrotter import Lie
 from qdrift_trotter import Qdrift
+from suzuki import Suzuki
 from constructor import hamiltonian_circuit_error
 from parser import store_dict_as_json, export_circuit
 
@@ -38,6 +39,7 @@ def iterate_over_reps(constructor, reps_s, reps_e):
         "name": constructor.method,
         "error": errs,
         "depth": depths,
+        "reps": list(range(reps_s, reps_e)),
         "min_depth": min_depth,
         "min_circuit": f"{constructor.hamiltonian}_{constructor.method}_{min_depth}",
     }
@@ -52,6 +54,7 @@ def plot_error_vs_depth(list_dicts: List[dict], threshold=0.1):
                     keys.
     """
 
+    plt.figure(figsize=(50, 50))
     for dict_ in list_dicts:
         plt.plot(
             dict_["depth"],
@@ -60,6 +63,8 @@ def plot_error_vs_depth(list_dicts: List[dict], threshold=0.1):
             marker="o",
             label=dict_["label"],
         )
+        for ind, rep in enumerate(dict_["reps"]):
+            plt.annotate(f"{rep}", (dict_["depth"][ind], dict_["error"][ind]))
 
     plt.axhline(y=threshold, label="error threshold")
 
@@ -81,18 +86,39 @@ def main():
     constructor = Lie()
     constructor.load_hamiltonian(hamiltonian)
     data = iterate_over_reps(constructor, 1, 5)
-    print(data)
     list_dicts.append(
-        {"depth": data["depth"], "error": data["error"], "label": "H2_Lie_1_to_5"}
+        {
+            "depth": data["depth"],
+            "error": data["error"],
+            "reps": data["reps"],
+            "label": "H2_Lie_1_to_5",
+        }
     )
 
     constructor = Qdrift()
     constructor.load_hamiltonian(hamiltonian)
     data = iterate_over_reps(constructor, 1, 5)
-    print(data)
     list_dicts.append(
-        {"depth": data["depth"], "error": data["error"], "label": "H2_Qdrift_1_to_5"}
+        {
+            "depth": data["depth"],
+            "error": data["error"],
+            "reps": data["reps"],
+            "label": "H2_Qdrift_1_to_5",
+        }
     )
+
+    for order in range(2, 5, 2):
+        constructor = Suzuki(order=order)
+        constructor.load_hamiltonian(hamiltonian)
+        data = iterate_over_reps(constructor, 1, 5)
+        list_dicts.append(
+            {
+                "depth": data["depth"],
+                "error": data["error"],
+                "reps": data["reps"],
+                "label": f"H2_suzuki_{order}_rep_1_to_5",
+            }
+        )
 
     plot_error_vs_depth(list_dicts)
     # store_dict_as_json(lie_data, "H2/lie_data_0.json")
