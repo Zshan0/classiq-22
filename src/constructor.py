@@ -27,20 +27,13 @@ def global_phase(a: np.ndarray):
     return 1 + 0j
 
 
-def export_circuit(circuit: QuantumCircuit, file_name: str):
-    qasm_string = circuit.qasm()
-    assert qasm_string is not None, "Could not generate qasm string"
-
-    with open(file_name, "w") as f:
-        f.write(qasm_string)
-
-
 def get_circuit_unitary(circuit, decimals: int = 8, backend=None):
     if backend is None:
         backend = Aer.get_backend("aer_simulator")
     unitary = None
-    circuit.save_unitary()
-    transpiled = transpile(circuit, backend)
+    new_circuit = circuit.copy()
+    new_circuit.save_unitary()
+    transpiled = transpile(new_circuit, backend)
 
     result = backend.run(transpiled).result()
     unitary = result.get_unitary(transpiled, decimals=decimals)
@@ -82,6 +75,7 @@ class Constructor:
         self.circuit = None
 
     def load_hamiltonian(self, hamiltonian: str):
+        self.hamiltonian = hamiltonian
         self.pauli_op: PauliSumOp = get_pauli_sum_op(hamiltonian)
 
     def get_circuit(

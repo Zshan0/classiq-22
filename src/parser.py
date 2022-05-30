@@ -1,11 +1,23 @@
 from typing import List
+from qiskit import QuantumCircuit
 from qiskit.opflow import PauliSumOp
 import json
 
 
-def get_string_from_file(hamiltonian: str) -> str:
+def export_circuit(circuit: QuantumCircuit, file_name: str):
+    if type(circuit) is not QuantumCircuit:
+        raise NotImplemented("exports only circuits.")
+
+    qasm_string = circuit.qasm()
+    assert qasm_string is not None, "Could not generate qasm string"
+
+    with open(file_name, "w") as f:
+        f.write(qasm_string)
+
+
+def get_string_from_file(file_name: str) -> str:
     string = ""
-    with open(f"hamiltonians/{hamiltonian}", "r") as file:
+    with open(file_name, "r") as file:
         string = file.read()
 
     return string
@@ -25,7 +37,7 @@ def parse_to_terms(string: str) -> List:
 
 
 def get_pauli_sum_op(hamiltonian: str) -> PauliSumOp:
-    string = get_string_from_file(hamiltonian)
+    string = get_string_from_file(f"hamiltonians/{hamiltonian}")
     pauli_pairs = parse_to_terms(string)
     return PauliSumOp.from_list(pauli_pairs)
 
