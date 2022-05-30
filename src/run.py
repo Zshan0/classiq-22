@@ -17,7 +17,8 @@ def iterate_over_reps(constructor, reps_s, reps_e):
     min_circuit = None
 
     for reps in range(reps_s, reps_e):
-        constructor.get_circuit(reps)
+        constructor.re_init(reps)
+        constructor.get_circuit()
         pauli_op = constructor.pauli_op
         dec_circuit = constructor.decompose_circuit()
         error = hamiltonian_circuit_error(dec_circuit, pauli_op)

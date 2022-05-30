@@ -31,6 +31,7 @@ def get_circuit_unitary(circuit, decimals: int = 8, backend=None):
     if backend is None:
         backend = Aer.get_backend("aer_simulator")
     unitary = None
+    # have to make copy to avoid changes in the original circuit due to save_unitary.
     new_circuit = circuit.copy()
     new_circuit.save_unitary()
     transpiled = transpile(new_circuit, backend)
@@ -73,15 +74,34 @@ class Constructor:
         self.method = method
         self.hamiltonian = None
         self.circuit = None
+        self.synthesizer = None
 
     def load_hamiltonian(self, hamiltonian: str):
         self.hamiltonian = hamiltonian
         self.pauli_op: PauliSumOp = get_pauli_sum_op(hamiltonian)
 
-    def get_circuit(
-        self, operator: PauliEvolutionGate, _reps: int = 1
-    ) -> QuantumCircuit:
+    def re_init(self):
+        """
+        Re-initialize the synthesizer for the construction of circuit.
+        """
         raise NotImplemented("Accessing superclass is not allowed")
+
+    def get_circuit(self) -> QuantumCircuit:
+        """Get Hamiltonian circuit.
+
+        Get the higher level circuit for the Hamiltonian.
+        Note that the circuit must be converted to fundamental gates for
+        measuring the gate depth.
+        """
+        evo_gate = PauliEvolutionGate(self.pauli_op, 1.0, synthesis=self.synthesizer)
+
+        num_qubits = evo_gate.num_qubits
+        self.num_qubits = num_qubits
+        circ = QuantumCircuit(num_qubits)  # reset circuit everytime to avoid pile-up
+        circ.append(evo_gate, list(range(num_qubits)))
+
+        self.circuit = circ
+        return circ
 
     def decompose_circuit(self) -> QuantumCircuit:
         assert self.circuit is not None, "Circuit not prepared yet."
