@@ -103,13 +103,16 @@ class Constructor:
         self.circuit = circ
         return circ
 
-    def decompose_circuit(self) -> QuantumCircuit:
+    def decompose_circuit(self, optimizer=None) -> QuantumCircuit:
         assert self.circuit is not None, "Circuit not prepared yet."
 
         dec_circuit = decompose_circuit(self.circuit)
         if type(dec_circuit) is list:
             raise NotImplemented("decompose_circuit returns a list.")
-        else:
-            self.dec_circuit = dec_circuit
-            assert type(dec_circuit) is QuantumCircuit
-            return dec_circuit
+
+        if optimizer is not None:
+            dec_circuit = optimizer(dec_circuit)
+
+        self.dec_circuit = dec_circuit
+        assert type(dec_circuit) is QuantumCircuit
+        return dec_circuit
