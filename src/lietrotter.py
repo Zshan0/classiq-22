@@ -32,11 +32,11 @@ def loop(a, b, print_circuit, hamiltonian):
     min_err = np.inf
     for reps in range(a, b):
         constructor.re_init(reps)
-        constructor.get_circuit()
+        circ = constructor.get_circuit()
         pauli_op = constructor.pauli_op
         dec_circuit = constructor.decompose_circuit()
         if print_circuit:
-            print(dec_circuit)
+            print(circ.decompose())
         error = hamiltonian_circuit_error(dec_circuit, pauli_op)
         if error < min_err:
             min_err = error
@@ -48,7 +48,7 @@ def loop(a, b, print_circuit, hamiltonian):
 
 
 def main():
-    loop(1, 2, False, "H2")
+    loop(1, 2, True, "H2")
 
 
 if __name__ == "__main__":

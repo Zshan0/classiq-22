@@ -50,7 +50,7 @@ def get_pauli_list(pauli_sum_op: PauliSumOp) -> List:
     else:
         assert type(pauli_op) is SummedOp
         sum_op = list(pauli_op)
-        return [(x.primitive, x.coeff) for x in sum_op]
+        return [(str(x.primitive), x.coeff) for x in sum_op]
 
 
 def store_dict_as_json(req_dict: dict, file_name: str):
