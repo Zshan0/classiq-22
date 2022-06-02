@@ -5,8 +5,8 @@ import numpy as np
 
 
 class Qdrift(Constructor):
-    def __init__(self, _reps: int = 1):
-        super().__init__("QDRIFT")
+    def __init__(self, _reps: int = 1, optimizer=None):
+        super().__init__("QDRIFT", optimizer)
         assert _reps > 0, "Incorrect number of reps provided"
         self.reps = _reps
         self.synthesizer = QDrift(reps=_reps)

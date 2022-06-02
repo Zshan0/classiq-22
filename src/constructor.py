@@ -70,11 +70,12 @@ def decompose_circuit(
 
 
 class Constructor:
-    def __init__(self, method: str):
+    def __init__(self, method: str, optimizer=None):
         self.method = method
         self.hamiltonian = None
         self.circuit = None
         self.synthesizer = None
+        self.optimizer = optimizer
 
     def load_hamiltonian(self, hamiltonian: str, optimizer=None):
         """Load given Hamiltonian
@@ -128,6 +129,8 @@ class Constructor:
 
         if optimizer is not None:
             dec_circuit = optimizer(dec_circuit)
+        elif self.optimizer is not None:
+            dec_circuit = self.optimizer(dec_circuit)
 
         self.dec_circuit = dec_circuit
         assert type(dec_circuit) is QuantumCircuit

@@ -4,8 +4,8 @@ import numpy as np
 
 
 class Lie(Constructor):
-    def __init__(self, _reps: int = 1):
-        super().__init__("LIE")
+    def __init__(self, _reps: int = 1, optimizer=None):
+        super().__init__("LIE", optimizer)
         assert _reps > 0, "Incorrect number of reps provided"
         self.reps = _reps
         self.synthesizer = LieTrotter(reps=_reps)

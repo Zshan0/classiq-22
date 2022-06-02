@@ -7,7 +7,7 @@ class LexicoOptimizer(BaseHamiltonianOptimizer):
     def __init__(self):
         pass
 
-    def optimize(self, pauli_op:PauliSumOp) -> PauliSumOp:
+    def optimize(self, pauli_op: PauliSumOp) -> PauliSumOp:
         """
         Method for optimizing the Pauli operator.
 
@@ -25,10 +25,10 @@ class LexicoOptimizer(BaseHamiltonianOptimizer):
         return self.optimize(pauli_op)
 
 
-
 def main():
     from lietrotter import Lie
     from constructor import hamiltonian_circuit_error
+
     hamiltonian = "H2"
     optimizer = LexicoOptimizer()
     constructor = Lie()
@@ -48,8 +48,6 @@ def main():
     error = hamiltonian_circuit_error(dec_circuit, pauli_op)
     depth = dec_circuit.depth()
     print(f"unoptimized error:{error}, depth:{depth}")
-
-
 
 
 if __name__ == "__main__":

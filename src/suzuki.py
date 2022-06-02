@@ -3,8 +3,8 @@ from constructor import Constructor
 
 
 class Suzuki(Constructor):
-    def __init__(self, order: int = 1):
-        super().__init__("SUZUKI")
+    def __init__(self, order: int = 1, optimizer=None):
+        super().__init__("SUZUKI", optimizer)
         assert order > 0, "Incorrect order."
         self.order = order
 

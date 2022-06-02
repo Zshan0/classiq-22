@@ -29,7 +29,7 @@ def get_min_reps(constructor, reps_s=1, reps_e=5, threshold=0.1):
 
     min_depth = np.inf
     min_circuit = None
-    max_reps = -1
+    max_reps = reps_e + 1
     optimizer = Optimizer()
 
     for reps in range(reps_s, reps_e + 1):
@@ -47,7 +47,7 @@ def get_min_reps(constructor, reps_s=1, reps_e=5, threshold=0.1):
             min_depth = depth
             min_circuit = dec_circuit
         if error <= threshold:
-            max_reps = reps
+            max_reps = reps + 1
             break
 
     return {
@@ -67,6 +67,7 @@ def plot_error_vs_depth(list_dicts: List[dict], threshold=0.1, savefig=True):
                     keys.
     """
 
+    print(list_dicts)
     plt.figure(figsize=(50, 50))
     for dict_ in list_dicts:
         plt.plot(
@@ -93,59 +94,47 @@ def plot_error_vs_depth(list_dicts: List[dict], threshold=0.1, savefig=True):
     plt.show()
 
 
-def main():
-    hamiltonian = "H2"
-    CIRCUIT_DEPTH = 1000
+def run_methods(constructors: List, hamiltonian: str, reps_s=1, reps_e=5):
+    """
+    run all the methods and store the best circuit for each method based
+    on the name of the method and other parameters.
+
+    Args:
+        - constructors: list of constructors
+        - reps_s: starting rep number
+        - reps_e: ending rep number
+    """
+
     list_dicts = []
 
-    constructor = Lie()
-    constructor.load_hamiltonian(hamiltonian)
-    data = get_min_reps(constructor, 1, 5)
-    depth = data["min_circuit"].depth()
-    if depth <= CIRCUIT_DEPTH:
+    for constructor in constructors:
+        constructor.load_hamiltonian(hamiltonian)
+        data = get_min_reps(constructor, reps_s, reps_e)
+        depth = data["min_circuit"].depth()
         export_circuit(
             data["min_circuit"],
             f"circuits/{constructor.hamiltonian}_{constructor.method}_{depth}.qasm",
         )
-
-    list_dicts.append(
-        {
-            "depth": data["depth"],
-            "error": data["error"],
-            "reps": data["reps"],
-            "label": "H2_Lie_1_to_5",
-        }
-    )
-    plot_error_vs_depth(list_dicts)
-    return
-
-    constructor = Qdrift()
-    constructor.load_hamiltonian(hamiltonian)
-    data = get_min_reps(constructor, 1, 5)
-    list_dicts.append(
-        {
-            "depth": data["depth"],
-            "error": data["error"],
-            "reps": data["reps"],
-            "label": "H2_Qdrift_1_to_5",
-        }
-    )
-
-    for order in range(2, 5, 2):
-        constructor = Suzuki(order=order)
-        constructor.load_hamiltonian(hamiltonian)
-        data = get_min_reps(constructor, 1, 5)
         list_dicts.append(
             {
-                "depth": data["depth"],
-                "error": data["error"],
-                "reps": data["reps"],
-                "label": f"H2_suzuki_{order}_rep_1_to_5",
+                **data,
+                "label": f"H2_{constructor.method}_{reps_s}_to_{reps_e}",
             }
         )
-
     plot_error_vs_depth(list_dicts)
-    # store_dict_as_json(lie_data, "H2/lie_data_0.json")
+
+
+def main():
+    hamiltonian = "H2"
+    optimizer = Optimizer()
+
+    constructors = [
+        Lie(optimizer=optimizer),
+        Qdrift(optimizer=optimizer),
+        Suzuki(optimizer=optimizer),
+    ]
+    run_methods(constructors, hamiltonian, 1, 5)
+    return
 
 
 if __name__ == "__main__":
