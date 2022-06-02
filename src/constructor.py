@@ -76,9 +76,22 @@ class Constructor:
         self.circuit = None
         self.synthesizer = None
 
-    def load_hamiltonian(self, hamiltonian: str):
+    def load_hamiltonian(self, hamiltonian: str, optimizer=None):
+        """Load given Hamiltonian
+
+        Loads the given Hamiltonian from the folder `hamiltonian/`.
+        Hamiltonian when read from a file can further be optimized
+
+        Args:
+            - hamiltonian: name of the hamiltonian file
+            - optimizer: callable that will take in the pauli_op and optimize it
+        """
         self.hamiltonian = hamiltonian
-        self.pauli_op: PauliSumOp = get_pauli_sum_op(hamiltonian)
+        pauli_op: PauliSumOp = get_pauli_sum_op(hamiltonian)
+        if optimizer is not None:
+            pauli_op = optimizer(pauli_op)
+
+        self.pauli_op = pauli_op
 
     def re_init(self):
         """
@@ -92,6 +105,9 @@ class Constructor:
         Get the higher level circuit for the Hamiltonian.
         Note that the circuit must be converted to fundamental gates for
         measuring the gate depth.
+
+        Returns:
+            Quantum Circuit for the loaded hamiltonian.
         """
         evo_gate = PauliEvolutionGate(self.pauli_op, 1.0, synthesis=self.synthesizer)
 

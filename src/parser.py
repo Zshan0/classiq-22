@@ -1,6 +1,6 @@
 from typing import List
 from qiskit import QuantumCircuit
-from qiskit.opflow import PauliSumOp
+from qiskit.opflow import PauliSumOp, PauliOp, SummedOp
 import json
 
 
@@ -42,6 +42,17 @@ def get_pauli_sum_op(hamiltonian: str) -> PauliSumOp:
     return PauliSumOp.from_list(pauli_pairs)
 
 
+def get_pauli_list(pauli_sum_op: PauliSumOp) -> List:
+    pauli_op = pauli_sum_op.to_pauli_op()
+
+    if type(pauli_op) is PauliOp:
+        return [(pauli_op.primitive, pauli_op.coeff)]
+    else:
+        assert type(pauli_op) is SummedOp
+        sum_op = list(pauli_op)
+        return [(x.primitive, x.coeff) for x in sum_op]
+
+
 def store_dict_as_json(req_dict: dict, file_name: str):
     with open(file_name, "w") as fp:
         json.dump(req_dict, fp)
@@ -57,7 +68,9 @@ def load_json(file_name: str):
 def main():
     hamiltonian = "H2"
     pauli_op = get_pauli_sum_op(hamiltonian)
-    print(pauli_op)
+    print(pauli_op, type(pauli_op))
+    pauli_list = get_pauli_list(pauli_op)
+    print(pauli_list)
 
 
 if __name__ == "__main__":
