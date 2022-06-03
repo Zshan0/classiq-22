@@ -105,6 +105,7 @@ def main():
     constructor.get_circuit()
 
     dec_circuit = constructor.decompose_circuit()
+    dec_circuit.qasm(filename='res.qasm')
     error = hamiltonian_circuit_error(dec_circuit, pauli_op)
     depth = dec_circuit.depth()
     print(f"optimized error:{error}, depth:{depth}")
