@@ -14,6 +14,9 @@ def export_circuit(circuit: QuantumCircuit, file_name: str):
     with open(file_name, "w") as f:
         f.write(qasm_string)
 
+def import_circuit(file_name: str):
+    return QuantumCircuit.from_qasm_file(file_name)
+
 
 def get_string_from_file(file_name: str) -> str:
     string = ""

@@ -1,5 +1,5 @@
 from qiskit.opflow import PauliSumOp
-from parser import get_pauli_list, get_pauli_sum_op
+from parser import get_pauli_list
 from hamiltonian_optimizer import BaseHamiltonianOptimizer
 from pprint import pprint as print
 from circuit_optimizer import Optimizer as Circ_optimizer
@@ -9,10 +9,25 @@ class PairWiseOptimizer(BaseHamiltonianOptimizer):
     def __init__(self):
         pass
 
-    def group(self, strings):
-        nonI_map = dict()
+    def group_by_coeff(self, pauli_list):
+        coeff_map = dict()
 
+        for pauli, coeff in pauli_list:
+            if coeff in coeff_map:
+                coeff_map[coeff].append(pauli)
+            else:
+                coeff_map[coeff] = [pauli]
+
+        new_list = []
+        for coeff, p_list in coeff_map.items():
+            new_list.append((coeff, p_list))
+
+        return new_list
+
+    def group_by_u(self, strings):
+        nonI_map = dict()
         pauli = ["I", "X", "Y", "Z"]
+
         for string in strings:
             u_string = string
             for nonI in pauli[1:]:
@@ -60,15 +75,16 @@ class PairWiseOptimizer(BaseHamiltonianOptimizer):
             - optimized: Pauli operator
         """
         pauli_list = get_pauli_list(pauli_op)
-        pauli_strings = [x[0] for x in pauli_list]
-        coeff_map = {x: y for (x, y) in pauli_list}
-        new_list = self.group(pauli_strings)
+        new_pair_list = self.group_by_coeff(pauli_list)
 
-        new_pauli_list = []
-        for x in new_list:
-            new_pauli_list.append((x, coeff_map[x]))
+        new_list = []
+        for coeff, p_list in new_pair_list:
+            p_list = self.group_by_u(p_list)
+            for p in p_list:
+                new_list.append((p, coeff))
 
-        return PauliSumOp.from_list(new_pauli_list)
+        print(new_list)
+        return PauliSumOp.from_list(new_list)
 
     def __call__(self, pauli_op: PauliSumOp) -> PauliSumOp:
         return self.optimize(pauli_op)

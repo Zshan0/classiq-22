@@ -4,11 +4,12 @@ from hamiltonian_optimizer import BaseHamiltonianOptimizer
 from pprint import pprint as print
 from circuit_optimizer import Optimizer as Circ_optimizer
 
-from random import shuffle
+from random import shuffle, randint
+
 
 class RandomShuffle(BaseHamiltonianOptimizer):
-    def __init__(self):
-        pass
+    def __init__(self, shuffle_count=10):
+        self.shuffle_count = shuffle_count
 
     def optimize(self, pauli_op: PauliSumOp) -> PauliSumOp:
         """
@@ -19,8 +20,16 @@ class RandomShuffle(BaseHamiltonianOptimizer):
         Returns:
             - optimized: Pauli operator
         """
-        pauli_list = get_pauli_list(pauli_op)
-        shuffle(pauli_list)
+        pauli_list = get_pauli_list(pauli_op)  # [(string, coeff)]
+        shuffle_count = self.shuffle_count
+
+        position = randint(0, len(pauli_list) - (shuffle_count + 1))
+
+        shuffled = pauli_list[position : position + shuffle_count]
+        shuffle(shuffled)
+
+        for x in range(shuffle_count):
+            pauli_list[x + position] = shuffled[x]
 
         return PauliSumOp.from_list(pauli_list)
 
@@ -32,13 +41,13 @@ def main():
     from constructor import hamiltonian_circuit_error
     from lietrotter import Lie
 
-    hamiltonian = "H2"
-    optimizer = RandomShuffle()
+    hamiltonian = "LiH"
     circ_optimizer = Circ_optimizer()
 
     # constructor = Lie(optimizer=circ_optimizer)
     constructor = Lie()
-    for ind in range(10):
+    for ind in range(200, 240, 10):
+        optimizer = RandomShuffle(ind)
         constructor.load_hamiltonian(hamiltonian, optimizer=optimizer)
         pauli_op = constructor.pauli_op
         constructor.get_circuit()

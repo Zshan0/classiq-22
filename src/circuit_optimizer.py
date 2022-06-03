@@ -8,7 +8,7 @@ from qiskit.transpiler.passes import (
     Optimize1qGatesSimpleCommutation,
     CommutativeCancellation,
     CXCancellation,
-    CommutationAnalysis
+    CommutationAnalysis,
 )
 
 
