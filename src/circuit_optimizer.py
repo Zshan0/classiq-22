@@ -8,6 +8,7 @@ from qiskit.transpiler.passes import (
     Optimize1qGatesSimpleCommutation,
     CommutativeCancellation,
     CXCancellation,
+    CommutationAnalysis
 )
 
 
@@ -20,10 +21,12 @@ class Optimizer:
         simple_commutation_pass = Optimize1qGatesSimpleCommutation(basis=basis_gates)
         cancel_cx_pass = CXCancellation()
         commutative_cancellation_pass = CommutativeCancellation(basis_gates=basis_gates)
+        commutative_analysis_pass = CommutationAnalysis()
 
         self.passes = [
             simple_commutation_pass,
             cancel_cx_pass,
+            commutative_analysis_pass,
             commutative_cancellation_pass,
         ]
         self.manager = PassManager(self.passes)

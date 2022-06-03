@@ -1,9 +1,12 @@
 from qiskit.opflow import PauliSumOp
-from parser import get_pauli_list
+from parser import get_pauli_list, get_pauli_sum_op
 from hamiltonian_optimizer import BaseHamiltonianOptimizer
+from pprint import pprint as print
+from circuit_optimizer import Optimizer as Circ_optimizer
 
+from random import shuffle
 
-class LexicoOptimizer(BaseHamiltonianOptimizer):
+class RandomShuffle(BaseHamiltonianOptimizer):
     def __init__(self):
         pass
 
@@ -17,7 +20,7 @@ class LexicoOptimizer(BaseHamiltonianOptimizer):
             - optimized: Pauli operator
         """
         pauli_list = get_pauli_list(pauli_op)
-        pauli_list.sort()
+        shuffle(pauli_list)
 
         return PauliSumOp.from_list(pauli_list)
 
@@ -26,24 +29,27 @@ class LexicoOptimizer(BaseHamiltonianOptimizer):
 
 
 def main():
-    from lietrotter import Lie
     from constructor import hamiltonian_circuit_error
+    from lietrotter import Lie
 
-    hamiltonian = "LiH"
-    optimizer = LexicoOptimizer()
+    hamiltonian = "H2"
+    optimizer = RandomShuffle()
+    circ_optimizer = Circ_optimizer()
+
+    # constructor = Lie(optimizer=circ_optimizer)
     constructor = Lie()
-    constructor.load_hamiltonian(hamiltonian=hamiltonian, optimizer=optimizer)
-
-    pauli_op = constructor.pauli_op
-    constructor.get_circuit()
-    dec_circuit = constructor.decompose_circuit()
-    error = hamiltonian_circuit_error(dec_circuit, pauli_op)
-    depth = dec_circuit.depth()
-    print(f"optimized error:{error}, depth:{depth}")
+    for ind in range(10):
+        constructor.load_hamiltonian(hamiltonian, optimizer=optimizer)
+        pauli_op = constructor.pauli_op
+        constructor.get_circuit()
+        dec_circuit = constructor.decompose_circuit()
+        error = hamiltonian_circuit_error(dec_circuit, pauli_op)
+        depth = dec_circuit.depth()
+        print(f"{ind} optimized error:{error}, depth:{depth}")
 
     constructor.load_hamiltonian(hamiltonian=hamiltonian)
     constructor.get_circuit()
-    pauli_op = constructor.pauli_op
+    # pauli_op = constructor.pauli_op
     dec_circuit = constructor.decompose_circuit()
     error = hamiltonian_circuit_error(dec_circuit, pauli_op)
     depth = dec_circuit.depth()

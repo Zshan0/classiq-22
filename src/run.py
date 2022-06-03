@@ -34,6 +34,7 @@ def get_min_reps(constructor, reps_s=1, reps_e=5, threshold=0.1):
 
     for reps in range(reps_s, reps_e + 1):
         constructor.re_init(reps)
+        print(f"----------> Running {constructor.method} on {reps} reps.")
         constructor.get_circuit()
         dec_circuit = constructor.decompose_circuit(optimizer)
 
@@ -68,7 +69,7 @@ def plot_error_vs_depth(list_dicts: List[dict], threshold=0.1, savefig=True):
     """
 
     print(list_dicts)
-    plt.figure(figsize=(50, 50))
+    plt.figure(figsize=(20, 12))
     for dict_ in list_dicts:
         plt.plot(
             dict_["depth"],
@@ -118,14 +119,14 @@ def run_methods(constructors: List, hamiltonian: str, reps_s=1, reps_e=5):
         list_dicts.append(
             {
                 **data,
-                "label": f"H2_{constructor.method}_{reps_s}_to_{reps_e}",
+                "label": f"{constructor.hamiltonian}_{constructor.method}_{reps_s}_to_{reps_e}",
             }
         )
     plot_error_vs_depth(list_dicts)
 
 
 def main():
-    hamiltonian = "H2"
+    hamiltonian = "LiH"
     optimizer = Optimizer()
 
     constructors = [
