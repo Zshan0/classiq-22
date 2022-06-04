@@ -1,13 +1,15 @@
+from requests import delete
 from qiskit.opflow import PauliSumOp
+import copy
 from parser import get_pauli_list
 from hamiltonian_optimizer import BaseHamiltonianOptimizer
-from pprint import pprint as print
+# from pprint import pprint as print
 from circuit_optimizer import Optimizer as Circ_optimizer
 
 
 class PairWiseOptimizer(BaseHamiltonianOptimizer):
     def __init__(self):
-        pass
+        self.num_deletes = 50
 
     def group_by_coeff(self, pauli_list):
         coeff_map = dict()
@@ -65,6 +67,26 @@ class PairWiseOptimizer(BaseHamiltonianOptimizer):
         assert len(new_list) == len(strings)
         return new_list
 
+    def delete_terms(self, pauli_list):
+        '''
+        delete terms with low coefficints
+        '''
+        new_list = copy.deepcopy(pauli_list)
+        for i in range(self.num_deletes):
+            deleted_list = []
+            min_coff =  min([x[1] for x in new_list])
+            for term in pauli_list:
+                if term[1] > min_coff:
+                    deleted_list.append(term)
+            new_list = copy.deepcopy(deleted_list)
+
+        print("newlist len: ", len(new_list))
+        return new_list
+            
+
+
+
+
     def optimize(self, pauli_op: PauliSumOp) -> PauliSumOp:
         """
         Method for optimizing the Pauli operator.
@@ -84,7 +106,11 @@ class PairWiseOptimizer(BaseHamiltonianOptimizer):
                 new_list.append((p, coeff))
 
         print(new_list)
+        new_list = self.delete_terms(new_list)
+
         return PauliSumOp.from_list(new_list)
+
+
 
     def __call__(self, pauli_op: PauliSumOp) -> PauliSumOp:
         return self.optimize(pauli_op)
