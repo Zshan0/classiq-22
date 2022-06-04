@@ -9,7 +9,7 @@ from circuit_optimizer import Optimizer as Circ_optimizer
 
 class PairWiseOptimizer(BaseHamiltonianOptimizer):
     def __init__(self):
-        self.num_deletes = 50
+        self.num_deletes = 10
 
     def group_by_coeff(self, pauli_list):
         coeff_map = dict()
@@ -125,14 +125,17 @@ def main():
     circ_optimizer = Circ_optimizer()
 
     constructor = Lie(optimizer=circ_optimizer)
+
+    constructor.load_hamiltonian(hamiltonian = hamiltonian)
+    original_pauli_op = constructor.pauli_op
     constructor.load_hamiltonian(hamiltonian, optimizer=optimizer)
 
     pauli_op = constructor.pauli_op
     constructor.get_circuit()
-
     dec_circuit = constructor.decompose_circuit()
-    dec_circuit.qasm(filename='res.qasm')
-    error = hamiltonian_circuit_error(dec_circuit, pauli_op)
+    # dec_circuit.qasm(filename='res.qasm')
+    error = hamiltonian_circuit_error(dec_circuit, original_pauli_op)
+    print("len ", len(original_pauli_op))
     depth = dec_circuit.depth()
     print(f"optimized error:{error}, depth:{depth}")
 
@@ -140,7 +143,7 @@ def main():
     constructor.get_circuit()
     pauli_op = constructor.pauli_op
     dec_circuit = constructor.decompose_circuit()
-    error = hamiltonian_circuit_error(dec_circuit, pauli_op)
+    error = hamiltonian_circuit_error(dec_circuit, original_pauli_op)
     depth = dec_circuit.depth()
     print(f"unoptimized error:{error}, depth:{depth}")
 
