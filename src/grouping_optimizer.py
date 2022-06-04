@@ -33,6 +33,9 @@ class PairWiseOptimizer(BaseHamiltonianOptimizer):
             coeff_map[key] = d[key]
         return coeff_map
 
+    def delete_single_group(self, d):
+        pass
+
     def group_by_coeff(self, pauli_list):
         coeff_map = dict()
 
