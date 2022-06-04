@@ -3,13 +3,35 @@ from qiskit.opflow import PauliSumOp
 import copy
 from parser import get_pauli_list
 from hamiltonian_optimizer import BaseHamiltonianOptimizer
-# from pprint import pprint as print
+import random
+from pprint import pprint
 from circuit_optimizer import Optimizer as Circ_optimizer
+
+
+class bcolors:
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
 
 
 class PairWiseOptimizer(BaseHamiltonianOptimizer):
     def __init__(self):
         self.num_deletes = 10
+
+    def randomize(self, d):
+        keys = list(d.keys())
+        random.shuffle(keys)
+
+        coeff_map = dict()
+        for key in keys:
+            coeff_map[key] = d[key]
+        return coeff_map
 
     def group_by_coeff(self, pauli_list):
         coeff_map = dict()
@@ -21,6 +43,7 @@ class PairWiseOptimizer(BaseHamiltonianOptimizer):
                 coeff_map[coeff] = [pauli]
 
         new_list = []
+        # coeff_map = self.randomize(coeff_map)
         for coeff, p_list in coeff_map.items():
             new_list.append((coeff, p_list))
 
@@ -68,24 +91,35 @@ class PairWiseOptimizer(BaseHamiltonianOptimizer):
         return new_list
 
     def delete_terms(self, pauli_list):
-        '''
+        """
         delete terms with low coefficints
-        '''
+        """
         new_list = copy.deepcopy(pauli_list)
         for i in range(self.num_deletes):
             deleted_list = []
-            min_coff =  min([x[1] for x in new_list])
+            min_coff = min([x[1] for x in new_list])
             for term in pauli_list:
                 if term[1] > min_coff:
                     deleted_list.append(term)
             new_list = copy.deepcopy(deleted_list)
 
-        print("newlist len: ", len(new_list))
+        # print("newlist len: ", len(new_list))
         return new_list
-            
 
-
-
+    def intra_group_swipe(self, pauli_list):
+        """
+        Bring reflexives closer within a given group
+        """
+        new_list = []
+        for string, coeff in pauli_list:
+            reflected_string = string[5:] + string[:5]
+            if reflected_string != string and (reflected_string, coeff) in pauli_list:
+                new_list.append((string, coeff))
+                new_list.append((reflected_string, coeff))
+                pauli_list.remove((reflected_string, coeff))
+            else:
+                new_list.append((string, coeff))
+        return new_list
 
     def optimize(self, pauli_op: PauliSumOp) -> PauliSumOp:
         """
@@ -105,18 +139,18 @@ class PairWiseOptimizer(BaseHamiltonianOptimizer):
             for p in p_list:
                 new_list.append((p, coeff))
 
-        print(new_list)
-        new_list = self.delete_terms(new_list)
+        new_list = self.intra_group_swipe(new_list)
+        # pprint(new_list)
+        # exit(0)
+        # new_list = self.delete_terms(new_list)
 
         return PauliSumOp.from_list(new_list)
-
-
 
     def __call__(self, pauli_op: PauliSumOp) -> PauliSumOp:
         return self.optimize(pauli_op)
 
 
-def main():
+def main(iter):
     from constructor import hamiltonian_circuit_error
     from lietrotter import Lie
 
@@ -126,27 +160,32 @@ def main():
 
     constructor = Lie(optimizer=circ_optimizer)
 
-    constructor.load_hamiltonian(hamiltonian = hamiltonian)
+    constructor.load_hamiltonian(hamiltonian=hamiltonian)
     original_pauli_op = constructor.pauli_op
     constructor.load_hamiltonian(hamiltonian, optimizer=optimizer)
 
     pauli_op = constructor.pauli_op
     constructor.get_circuit()
     dec_circuit = constructor.decompose_circuit()
-    # dec_circuit.qasm(filename='res.qasm')
     error = hamiltonian_circuit_error(dec_circuit, original_pauli_op)
-    print("len ", len(original_pauli_op))
     depth = dec_circuit.depth()
-    print(f"optimized error:{error}, depth:{depth}")
+    print(
+        f"{bcolors.WARNING}Optimized error:{error}, depth:{depth} with len(H): {len(original_pauli_op)}{bcolors.ENDC}"
+    )
 
-    constructor.load_hamiltonian(hamiltonian=hamiltonian)
-    constructor.get_circuit()
-    pauli_op = constructor.pauli_op
-    dec_circuit = constructor.decompose_circuit()
-    error = hamiltonian_circuit_error(dec_circuit, original_pauli_op)
-    depth = dec_circuit.depth()
-    print(f"unoptimized error:{error}, depth:{depth}")
+    if error < 0.1 and depth < 2000:
+        dec_circuit.qasm(filename=f"QASM--{iter}--{depth}--{error}.qasm")
+
+    # constructor.load_hamiltonian(hamiltonian=hamiltonian)
+    # constructor.get_circuit()
+    # pauli_op = constructor.pauli_op
+    # dec_circuit = constructor.decompose_circuit()
+    # error = hamiltonian_circuit_error(dec_circuit, original_pauli_op)
+    # depth = dec_circuit.depth()
+    # print(
+    #     f"{bcolors.WARNING}Unoptimized error:{error}, depth:{depth} with len(H): {len(original_pauli_op)}{bcolors.ENDC}"
+    # )
 
 
 if __name__ == "__main__":
-    main()
+    main(1)
