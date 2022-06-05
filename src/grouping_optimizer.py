@@ -7,7 +7,7 @@ from hamiltonian_optimizer import BaseHamiltonianOptimizer
 import random
 from pprint import pprint
 from circuit_optimizer import Optimizer as Circ_optimizer
-
+from optimized_order import order
 
 class bcolors:
     HEADER = "\033[95m"
@@ -143,21 +143,21 @@ class PairWiseOptimizer(BaseHamiltonianOptimizer):
         Returns:
             - optimized: Pauli operator
         """
-        pauli_list = get_pauli_list(pauli_op)
-        new_pair_list = self.group_by_coeff(pauli_list)
+        # pauli_list = get_pauli_list(pauli_op)
+        # new_pair_list = self.group_by_coeff(pauli_list)
 
-        new_list = []
-        for coeff, p_list in new_pair_list:
-            p_list = self.group_by_u(p_list)
-            for p in p_list:
-                new_list.append((p, coeff))
+        # new_list = []
+        # for coeff, p_list in new_pair_list:
+        #     p_list = self.group_by_u(p_list)
+        #     for p in p_list:
+        #         new_list.append((p, coeff))
 
-        new_list = self.intra_group_swipe(new_list)
+        # new_list = self.intra_group_swipe(new_list)
         # pprint(new_list)
         # exit(0)
+        new_list = order
         # new_list = self.delete_terms(new_list)
-
-        new_list = self.delete_term_random(new_list)
+        # new_list = self.delete_term_random(new_list)
 
         return PauliSumOp.from_list(new_list)
 
@@ -205,10 +205,11 @@ def main(iter):
 
 
 if __name__ == "__main__":
+    main(1)
 
-    del_error = []
+    # del_error = []
 
-    for i in range(276):
-        del_error.append(main(i))
+    # for i in range(276):
+    #     del_error.append(main(i))
 
-    pprint(del_error)
+    # pprint(del_error)

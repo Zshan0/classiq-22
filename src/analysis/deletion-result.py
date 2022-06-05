@@ -1,3 +1,5 @@
+from pprint import pprint as print
+
 error_depth = [
     (0.08407293307342109, 1991),
     (0.08407214882599033, 1989),
@@ -276,3 +278,10 @@ error_depth = [
     (0.17707577974812483, 1999),
     (0.2758728786466676, 1996),
 ]
+
+ed_correspondence = [
+    (error_depth[i][1], error_depth[i][0], i) for i in range(len(error_depth))
+]
+ed_correspondence.sort()
+
+print(ed_correspondence)
