@@ -2,7 +2,7 @@ import parser
 import constructor
 
 def main():
-    file_name = "qasm/res.qasm"
+    file_name = "qasm/final.qasm"
     circ = parser.import_circuit(file_name)
     print(f"depth:{circ.depth()}")
     pauli = parser.get_pauli_sum_op("LiH")
