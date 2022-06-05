@@ -1,4 +1,5 @@
 from pprint import pprint as print
+from matplotlib import pyplot as plt
 
 error_depth = [
     (0.08407293307342109, 1991),
@@ -279,9 +280,13 @@ error_depth = [
     (0.2758728786466676, 1996),
 ]
 
-ed_correspondence = [
-    (error_depth[i][1], error_depth[i][0], i) for i in range(len(error_depth))
-]
-ed_correspondence.sort()
+error_0 = 0.08328520669331708
+depth_0 = 1999
 
-print(ed_correspondence)
+ed_correspondence = [
+    (depth_0 - error_depth[i][1], error_depth[i][0] - error_0, i) for i in range(len(error_depth))
+]
+
+arr = sorted(ed_correspondence, key=lambda x: x[1], reverse=False)
+
+print(arr)

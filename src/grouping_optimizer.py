@@ -7,7 +7,8 @@ from hamiltonian_optimizer import BaseHamiltonianOptimizer
 import random
 from pprint import pprint
 from circuit_optimizer import Optimizer as Circ_optimizer
-from optimized_order import order
+from optimized_order import order, coeffs
+from order import order as ordered_grouping
 
 class bcolors:
     HEADER = "\033[95m"
@@ -111,13 +112,23 @@ class PairWiseOptimizer(BaseHamiltonianOptimizer):
         # print("newlist len: ", len(new_list))
         return new_list
 
-    def delete_term_random(self, pauli_list):
+    def delete_term(self, pauli_list):
         """
-        delete a term randomly
+        delete a term given its index
         """
 
         pauli_list.pop(self.iter)
         return pauli_list
+
+    def delete_group(self, pauli_list):
+        """
+        delete a group given its coeff
+        """
+        new_list = []
+        for string, coeff in pauli_list:
+            if coeff != coeffs[self.iter]:
+                new_list.append((string, coeff))
+        return new_list
 
     def intra_group_swipe(self, pauli_list):
         """
@@ -155,9 +166,8 @@ class PairWiseOptimizer(BaseHamiltonianOptimizer):
         # new_list = self.intra_group_swipe(new_list)
         # pprint(new_list)
         # exit(0)
-        new_list = order
-        # new_list = self.delete_terms(new_list)
-        # new_list = self.delete_term_random(new_list)
+        new_list = ordered_grouping
+        # new_list = self.delete_group(new_list)
 
         return PauliSumOp.from_list(new_list)
 
@@ -205,11 +215,8 @@ def main(iter):
 
 
 if __name__ == "__main__":
-    main(1)
-
     # del_error = []
-
-    # for i in range(276):
-    #     del_error.append(main(i))
-
+    # for i in range(len(coeffs)):
+    #     del_error.append((main(i), coeffs[i]))
     # pprint(del_error)
+    main(1)
