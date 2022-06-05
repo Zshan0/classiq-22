@@ -1,3 +1,4 @@
+from pickletools import decimalnl_long
 from requests import delete
 from qiskit.opflow import PauliSumOp
 import copy
@@ -21,8 +22,9 @@ class bcolors:
 
 
 class PairWiseOptimizer(BaseHamiltonianOptimizer):
-    def __init__(self):
-        self.num_deletes = 10
+    def __init__(self, iter):
+        self.num_deletes = 8
+        self.iter = iter
 
     def randomize(self, d):
         keys = list(d.keys())
@@ -93,7 +95,7 @@ class PairWiseOptimizer(BaseHamiltonianOptimizer):
         assert len(new_list) == len(strings)
         return new_list
 
-    def delete_terms(self, pauli_list):
+    def delete_coffient_group(self, pauli_list):
         """
         delete terms with low coefficints
         """
@@ -108,6 +110,14 @@ class PairWiseOptimizer(BaseHamiltonianOptimizer):
 
         # print("newlist len: ", len(new_list))
         return new_list
+
+    def delete_term_random(self, pauli_list):
+        """
+        delete a term randomly
+        """
+
+        pauli_list.pop(self.iter)
+        return pauli_list
 
     def intra_group_swipe(self, pauli_list):
         """
@@ -147,6 +157,8 @@ class PairWiseOptimizer(BaseHamiltonianOptimizer):
         # exit(0)
         # new_list = self.delete_terms(new_list)
 
+        new_list = self.delete_term_random(new_list)
+
         return PauliSumOp.from_list(new_list)
 
     def __call__(self, pauli_op: PauliSumOp) -> PauliSumOp:
@@ -158,7 +170,7 @@ def main(iter):
     from lietrotter import Lie
 
     hamiltonian = "LiH"
-    optimizer = PairWiseOptimizer()
+    optimizer = PairWiseOptimizer(iter)
     circ_optimizer = Circ_optimizer()
 
     constructor = Lie(optimizer=circ_optimizer)
@@ -179,6 +191,8 @@ def main(iter):
     if error < 0.1 and depth < 2000:
         dec_circuit.qasm(filename=f"QASM--{iter}--{depth}--{error}.qasm")
 
+    return (error, depth)
+
     # constructor.load_hamiltonian(hamiltonian=hamiltonian)
     # constructor.get_circuit()
     # pauli_op = constructor.pauli_op
@@ -191,4 +205,10 @@ def main(iter):
 
 
 if __name__ == "__main__":
-    main(1)
+    
+    del_error = []
+
+    for i in range(276):
+        del_error.append(main(i))
+
+    pprint(del_error)
